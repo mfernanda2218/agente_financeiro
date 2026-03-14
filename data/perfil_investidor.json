@@ -1,0 +1,9 @@
+{
+  "nome": "João Silva",
+  "idade": 35,
+  "perfil_risco": "moderado",
+  "objetivos": ["aposentadoria", "compra de imovel"],
+  "renda_mensal": 5000,
+  "patrimonio": 50000,
+  "experiencia_investimento": "intermediario"
+}

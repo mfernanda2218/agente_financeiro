@@ -1,0 +1,34 @@
+{
+  "tesouro_direto": {
+    "nome": "Tesouro Selic 2029",
+    "tipo": "renda_fixa",
+    "rentabilidade": "SELIC",
+    "risco": "baixo",
+    "minimo_investimento": 100.00,
+    "liquidez": "diaria"
+  },
+  "cdb": {
+    "nome": "CDB Banco ABC",
+    "tipo": "renda_fixa",
+    "rentabilidade": "120% CDI",
+    "risco": "baixo",
+    "minimo_investimento": 1000.00,
+    "liquidez": "30 dias"
+  },
+  "acoes": {
+    "nome": "Ações PETR4",
+    "tipo": "renda_variavel",
+    "rentabilidade": "variavel",
+    "risco": "alto",
+    "minimo_investimento": 1.00,
+    "liquidez": "diaria"
+  },
+  "fundos": {
+    "nome": "Fundo Multimercado XYZ",
+    "tipo": "fundo_investimento",
+    "rentabilidade": "variavel",
+    "risco": "medio",
+    "minimo_investimento": 5000.00,
+    "liquidez": "60 dias"
+  }
+}
