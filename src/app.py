@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 import json
-import requests
+from google import genai
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 st.title("Agente Financeiro Inteligente")
 
@@ -22,54 +22,37 @@ with open("data/produtos_financeiros.json") as f:
 
 pergunta = st.text_input("Faça uma pergunta sobre suas finanças")
 
-with st.spinner("Pensando..."):
-    response = ollama.chat(
-        model="llama3",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-    )
-
 if pergunta:
+    with st.spinner("Pensando..."):
+        contexto = f"""
+        Perfil do cliente:
+        {perfil}
 
-    contexto = f"""
-    Perfil do cliente:
-    {perfil}
+        Transações recentes:
+        {transacoes.head(20).to_string()}
 
-    Transações recentes:
-    {transacoes.head(20).to_string()}
+        Produtos disponíveis:
+        {produtos}
+        """
 
-    Produtos disponíveis:
-    {produtos}
-    """
+        prompt = f"""
+        Contexto:
+        {contexto}
 
-    prompt = f"""
-    Contexto:
-    {contexto}
+        Pergunta do cliente:
+        {pergunta}
+        """
 
-    Pergunta do cliente:
-    {pergunta}
-    """
-
-    # Chamada à API do Ollama
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": MODEL_NAME,
-            "prompt": f"""Você é um consultor financeiro responsável.
+        # Chamada à API do Gemini
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=f"""Você é um consultor financeiro responsável.
             
             Contexto:
             {contexto}
 
             Pergunta do cliente:
-            {pergunta}""",
-            "stream": False
-        }
-    )
-    
-    if response.status_code == 200:
-        resultado = response.json()
-        st.write(resultado.get("response", "Desculpe, não consegui processar sua pergunta."))
-    else:
-        st.write(f"Erro ao conectar com o Ollama: {response.status_code}")
+            {pergunta}"""
+        )
+        
+        st.write(response.text)
