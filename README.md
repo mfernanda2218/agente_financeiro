@@ -1,6 +1,6 @@
 # Agente Financeiro Inteligente
 
-Um protótipo de assistente financeiro pessoal desenvolvido com Streamlit e Ollama, capaz de analisar transações financeiras e fornecer recomendações personalizadas de investimento.
+Um protótipo de assistente financeiro pessoal desenvolvido com Streamlit e API do Groq, capaz de analisar transações financeiras e fornecer recomendações personalizadas de investimento.
 
 ## 🚀 Funcionalidades
 
@@ -13,8 +13,7 @@ Um protótipo de assistente financeiro pessoal desenvolvido com Streamlit e Olla
 ## 📋 Pré-requisitos
 
 - Python 3.8+
-- Ollama instalado e rodando localmente
-- Modelo `llama3` baixado no Ollama
+- Chave de API do Groq
 
 ## ⚙️ Instalação
 
@@ -29,19 +28,18 @@ Um protótipo de assistente financeiro pessoal desenvolvido com Streamlit e Olla
    pip install -r requirements.txt
    ```
 
-3. **Instale e configure o Ollama:**
-   ```bash
-   # Baixe e instale o Ollama em https://ollama.ai
-   ollama pull llama3
-   ollama serve
-   ```
-
-4. **Configure as variáveis de ambiente (opcional):**
+3. **Configure a API do Groq:**
    ```bash
    # Crie um arquivo .env com:
-   OLLAMA_URL=http://localhost:11434/api/generate
-   MODEL_NAME=llama3
+   GROQ_API_KEY=sua_chave_api_aqui
    ```
+   
+   Para obter sua chave de API:
+   1. Acesse https://console.groq.com
+   2. Faça login ou crie uma conta
+   3. Vá para API Keys e gere uma nova chave
+
+4. **Configure as variáveis de ambiente:**
 
 ## 🏃‍♂️ Executando o Projeto
 
@@ -91,7 +89,7 @@ O projeto inclui dados de exemplo para demonstração:
 
 ### Funcionalidades Implementadas:
 - ✅ Interface web funcional
-- ✅ Integração com Ollama
+- ✅ Integração com API do Groq
 - ✅ Análise de dados financeiros
 - ✅ Recomendações básicas
 
@@ -107,7 +105,8 @@ O projeto inclui dados de exemplo para demonstração:
 
 ## 🐛 Possíveis Problemas
 
-1. **Ollama não encontrado:** Verifique se o Ollama está instalado e rodando
-2. **Modelo não disponível:** Execute `ollama pull llama3`
+1. **Chave da API inválida:** Verifique se sua chave do Groq está correta e ativa
+2. **Módulo groq não encontrado:** Execute `pip install groq`
 3. **Caminhos de dados:** Execute o app a partir da pasta raiz do projeto
+4. **Conexão com API:** Verifique sua conexão com a internet e se a API do Groq está disponível
 
