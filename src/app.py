@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 import json
-from google import genai
+from groq import Groq
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 st.title("Agente Financeiro Inteligente")
 
@@ -43,16 +43,23 @@ if pergunta:
         {pergunta}
         """
 
-        # Chamada à API do Gemini
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=f"""Você é um consultor financeiro responsável.
-            
-            Contexto:
+        # Chamada à API do Groq
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um consultor financeiro responsável."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Contexto:
             {contexto}
 
             Pergunta do cliente:
             {pergunta}"""
+                }
+            ]
         )
         
-        st.write(response.text)
+        st.write(response.choices[0].message.content)
