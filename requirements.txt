@@ -13,13 +13,7 @@ cryptography==46.0.5
 distro==1.9.0
 gitdb==4.0.12
 GitPython==3.1.46
-google-ai-generativelanguage==0.6.15
-google-api-core==2.30.0
-google-api-python-client==2.192.0
-google-auth==2.49.1
-google-auth-httplib2==0.3.0
-google-genai==1.67.0
-googleapis-common-protos==1.73.0
+groq==1.1.1
 grpcio==1.78.0
 grpcio-status==1.71.2
 h11==0.16.0
@@ -34,7 +28,6 @@ jsonschema-specifications==2025.9.1
 MarkupSafe==3.0.3
 narwhals==2.18.0
 numpy==2.4.3
-ollama==0.6.1
 packaging==26.0
 pandas==2.3.3
 pillow==12.1.1
