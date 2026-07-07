@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-from src import config
+from src import config  # Mantém assim, mas ajuste abaixo
 
 def load_transacoes(file_path=None):
     """Carrega as transações do CSV."""
@@ -32,3 +32,4 @@ def load_produtos_financeiros():
         return {}
     except Exception as e:
         raise Exception(f"Erro ao carregar produtos: {str(e)}")
+        

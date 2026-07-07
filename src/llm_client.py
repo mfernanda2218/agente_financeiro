@@ -1,5 +1,6 @@
 from groq import Groq
 from src import config
+import httpx
 
 def get_system_prompt():
     return """Você é um Consultor Financeiro Inteligente altamente capacitado.
@@ -27,15 +28,52 @@ Produtos Financeiros Disponíveis no momento:
 """
     return contexto
 
+def create_groq_client():
+    """Cria um cliente Groq com compatibilidade entre versões."""
+    if not config.GROQ_API_KEY:
+        raise ValueError("GROQ_API_KEY não configurada.")
+    
+    try:
+        # Tentativa 1: Cliente padrão
+        client = Groq(api_key=config.GROQ_API_KEY)
+        return client
+    except TypeError as e:
+        if "proxies" in str(e):
+            try:
+                # Tentativa 2: Criar cliente com timeout personalizado
+                client = Groq(
+                    api_key=config.GROQ_API_KEY,
+                    timeout=60.0,
+                    max_retries=2
+                )
+                return client
+            except:
+                try:
+                    # Tentativa 3: Usar httpx client personalizado
+                    # Remove proxies do timeout
+                    http_client = httpx.Client(
+                        timeout=httpx.Timeout(60.0),
+                        follow_redirects=True
+                    )
+                    client = Groq(
+                        api_key=config.GROQ_API_KEY,
+                        http_client=http_client
+                    )
+                    return client
+                except Exception as e2:
+                    raise Exception(f"Falha ao criar cliente Groq: {str(e2)}")
+        else:
+            raise e
+
 def chat_completion(messages, context_str=None):
     """
     Envia o histórico de mensagens para a API do Groq.
     Injeta o contexto na mensagem do sistema caso context_str seja fornecido.
     """
-    if not config.GROQ_API_KEY:
-        raise ValueError("GROQ_API_KEY não configurada.")
-        
-    client = Groq(api_key=config.GROQ_API_KEY)
+    try:
+        client = create_groq_client()
+    except Exception as e:
+        raise Exception(f"Erro ao inicializar cliente Groq: {str(e)}")
     
     # Preparar a mensagem do sistema com ou sem contexto
     system_content = get_system_prompt()
@@ -49,10 +87,14 @@ def chat_completion(messages, context_str=None):
         # Apenas passamos as mensagens que não são de sistema para não poluir
         if msg["role"] in ["user", "assistant"]:
             api_messages.append({"role": msg["role"], "content": msg["content"]})
-            
-    response = client.chat.completions.create(
-        model=config.LLM_MODEL,
-        messages=api_messages
-    )
     
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model=config.LLM_MODEL,
+            messages=api_messages,
+            temperature=0.7,
+            max_tokens=1024
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        raise Exception(f"Erro na comunicação com a API Groq: {str(e)}")
