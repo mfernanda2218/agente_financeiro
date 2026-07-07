@@ -6,6 +6,38 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_system_prompt():
+    """Retorna o prompt do sistema sem conexão com banco."""
+    return """Você é um Consultor Financeiro Inteligente altamente capacitado.
+Seu objetivo é analisar transações, perfil de risco e sugerir produtos financeiros adequados.
+
+REGRAS:
+1. Responda sempre em Markdown bem formatado.
+2. Use tabelas ou listas com marcadores para facilitar a leitura de dados ou recomendações.
+3. Se recomendar um produto, justifique por que ele se alinha ao perfil de risco do investidor.
+4. Não invente produtos que não estejam na lista de produtos disponíveis fornecida.
+5. Se não souber responder ou se a pergunta fugir do escopo financeiro, avise educadamente que sua especialidade é finanças pessoais e investimentos."""
+
+def analisar_impacto_indicadores(indicadores, perfil):
+    """Analisa o impacto dos indicadores nas recomendações."""
+    analise = []
+    
+    if indicadores and indicadores.get('selic') is not None:
+        selic = indicadores['selic']
+        if selic > 12:
+            analise.append(f"• SELIC em {selic:.2f}%: Momento favorável para renda fixa. Considere CDB, Tesouro Selic e LCI/LCA.")
+        elif selic < 8:
+            analise.append(f"• SELIC em {selic:.2f}%: Renda fixa menos atrativa. Avalie maior exposição a ações e FIIs.")
+        else:
+            analise.append(f"• SELIC em {selic:.2f}%: Cenário neutro para investimentos.")
+    
+    if indicadores and indicadores.get('ipca') is not None:
+        ipca = indicadores['ipca']
+        if ipca > 0.5:  # IPCA mensal
+            analise.append(f"• IPCA em {ipca:.2f}%: Inflação elevada. Busque ativos com proteção contra perda de poder de compra.")
+    
+    return "\n".join(analise)
+
 def build_context(perfil, transacoes_df, produtos):
     """Constrói o contexto incluindo indicadores econômicos do banco."""
     
@@ -27,15 +59,15 @@ Produtos Financeiros Disponíveis no momento:
         db = IndicadoresDatabase()
         indicadores = db.get_todos_indicadores_recentes()
         
-        if indicadores and any(indicadores.values()):
+        if indicadores and any([indicadores.get('selic'), indicadores.get('ipca')]):
             contexto += "\n--- INDICADORES ECONÔMICOS ATUAIS (Banco de Dados) ---\n"
-            if indicadores['selic'] is not None:
+            if indicadores.get('selic') is not None:
                 contexto += f"Taxa Selic: {indicadores['selic']:.2f}% ao ano\n"
-                contexto += f"Data Selic: {indicadores['selic_data']}\n"
-            if indicadores['ipca'] is not None:
+                contexto += f"Data Selic: {indicadores.get('selic_data', 'N/A')}\n"
+            if indicadores.get('ipca') is not None:
                 contexto += f"IPCA Mensal: {indicadores['ipca']:.2f}%\n"
-                contexto += f"Data IPCA: {indicadores['ipca_data']}\n"
-            contexto += f"Data da consulta: {indicadores['data_consulta']}\n"
+                contexto += f"Data IPCA: {indicadores.get('ipca_data', 'N/A')}\n"
+            contexto += f"Data da consulta: {indicadores.get('data_consulta', 'N/A')}\n"
             contexto += "---------------------------------------\n"
             
             # Adicionar análise de impacto
@@ -43,59 +75,13 @@ Produtos Financeiros Disponíveis no momento:
             if analise:
                 contexto += "\n--- ANÁLISE DE IMPACTO DOS INDICADORES ---\n"
                 contexto += analise
+        else:
+            contexto += "\n(Indicadores econômicos: dados não disponíveis no momento)\n"
                 
     except Exception as e:
         logger.warning(f"Não foi possível carregar indicadores econômicos: {e}")
         contexto += "\n(Indicadores econômicos não disponíveis no momento)\n"
     
-    return contexto
-
-def analisar_impacto_indicadores(indicadores, perfil):
-    """Analisa o impacto dos indicadores nas recomendações."""
-    analise = []
-    
-    if indicadores['selic'] is not None:
-        selic = indicadores['selic']
-        if selic > 12:
-            analise.append(f"• SELIC em {selic:.2f}%: Momento favorável para renda fixa. Considere CDB, Tesouro Selic e LCI/LCA.")
-        elif selic < 8:
-            analise.append(f"• SELIC em {selic:.2f}%: Renda fixa menos atrativa. Avalie maior exposição a ações e FIIs.")
-        else:
-            analise.append(f"• SELIC em {selic:.2f}%: Cenário neutro para investimentos.")
-    
-    if indicadores['ipca'] is not None:
-        ipca = indicadores['ipca']
-        if ipca > 0.5:  # IPCA mensal
-            analise.append(f"• IPCA em {ipca:.2f}%: Inflação elevada. Busque ativos com proteção contra perda de poder de compra.")
-    
-    return "\n".join(analise)
-
-    
-def get_system_prompt():
-    indicadores = IndicadoresDatabase().get_todos_indicadores_recentes()
-    return """Você é um Consultor Financeiro Inteligente altamente capacitado.
-Seu objetivo é analisar transações, perfil de risco e sugerir produtos financeiros adequados.
-
-REGRAS:
-1. Responda sempre em Markdown bem formatado.
-2. Use tabelas ou listas com marcadores para facilitar a leitura de dados ou recomendações.
-3. Se recomendar um produto, justifique por que ele se alinha ao perfil de risco do investidor.
-4. Não invente produtos que não estejam na lista de produtos disponíveis fornecida.
-5. Se não souber responder ou se a pergunta fugir do escopo financeiro, avise educadamente que sua especialidade é finanças pessoais e investimentos."""
-
-def build_context(perfil, transacoes_df, produtos):
-    contexto = f"""
---- DADOS DO CLIENTE ---
-Perfil do Investidor:
-{perfil}
-
-Últimas Transações (amostra):
-{transacoes_df.head(20).to_string() if not transacoes_df.empty else "Nenhuma transação encontrada."}
-
-Produtos Financeiros Disponíveis no momento:
-{produtos}
-------------------------
-"""
     return contexto
 
 def create_groq_client():
@@ -120,7 +106,6 @@ def create_groq_client():
             except:
                 try:
                     # Tentativa 3: Usar httpx client personalizado
-                    # Remove proxies do timeout
                     http_client = httpx.Client(
                         timeout=httpx.Timeout(60.0),
                         follow_redirects=True
@@ -154,7 +139,6 @@ def chat_completion(messages, context_str=None):
     
     # Adicionar as mensagens do usuário e do assistente (histórico)
     for msg in messages:
-        # Apenas passamos as mensagens que não são de sistema para não poluir
         if msg["role"] in ["user", "assistant"]:
             api_messages.append({"role": msg["role"], "content": msg["content"]})
     

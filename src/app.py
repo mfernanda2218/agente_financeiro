@@ -1,10 +1,11 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Adiciona o diretório pai ao path para importações funcionarem
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
 import pandas as pd
-import config, data_loader, llm_client
+from src import config, data_loader, llm_client  # ← IMPORTANTE: usar from src import
 
 st.set_page_config(page_title="Agente Financeiro", page_icon="💰", layout="wide")
 
@@ -46,6 +47,29 @@ with st.sidebar:
         st.write(f"**Renda Mensal:** R$ {perfil.get('renda_mensal', 0)}")
         st.write(f"**Patrimônio:** R$ {perfil.get('patrimonio', 0)}")
 
+    # --- INDICADORES ECONÔMICOS ---
+    st.subheader("📊 Indicadores Econômicos")
+    try:
+        from src.db_indicadores import IndicadoresDatabase
+        db = IndicadoresDatabase()
+        if db.engine:
+            indicadores = db.get_todos_indicadores_recentes()
+            if indicadores and any([indicadores.get('selic'), indicadores.get('ipca')]):
+                col1, col2 = st.columns(2)
+                with col1:
+                    if indicadores.get('selic'):
+                        st.metric("Selic", f"{indicadores['selic']:.2f}%")
+                with col2:
+                    if indicadores.get('ipca'):
+                        st.metric("IPCA", f"{indicadores['ipca']:.2f}%")
+                st.caption(f"Atualizado: {indicadores.get('data_consulta', 'N/A')}")
+            else:
+                st.info("Indicadores não disponíveis")
+        else:
+            st.info("🔄 Banco de dados não disponível. Indicadores não carregados.")
+    except Exception as e:
+        st.info("📊 Indicadores econômicos serão carregados quando disponíveis")
+    
     if st.button("🗑️ Limpar Histórico da Conversa"):
         st.session_state.messages = []
         st.rerun()
