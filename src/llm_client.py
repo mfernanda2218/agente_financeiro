@@ -1,8 +1,78 @@
 from groq import Groq
 from src import config
 import httpx
+from src.db_indicadores import IndicadoresDatabase
+import logging
 
+logger = logging.getLogger(__name__)
+
+def build_context(perfil, transacoes_df, produtos):
+    """Constrói o contexto incluindo indicadores econômicos do banco."""
+    
+    # Contexto básico
+    contexto = f"""
+--- DADOS DO CLIENTE ---
+Perfil do Investidor:
+{perfil}
+
+Últimas Transações (amostra):
+{transacoes_df.head(20).to_string() if not transacoes_df.empty else "Nenhuma transação encontrada."}
+
+Produtos Financeiros Disponíveis no momento:
+{produtos}
+"""
+    
+    # Adiciona indicadores econômicos do banco
+    try:
+        db = IndicadoresDatabase()
+        indicadores = db.get_todos_indicadores_recentes()
+        
+        if indicadores and any(indicadores.values()):
+            contexto += "\n--- INDICADORES ECONÔMICOS ATUAIS (Banco de Dados) ---\n"
+            if indicadores['selic'] is not None:
+                contexto += f"Taxa Selic: {indicadores['selic']:.2f}% ao ano\n"
+                contexto += f"Data Selic: {indicadores['selic_data']}\n"
+            if indicadores['ipca'] is not None:
+                contexto += f"IPCA Mensal: {indicadores['ipca']:.2f}%\n"
+                contexto += f"Data IPCA: {indicadores['ipca_data']}\n"
+            contexto += f"Data da consulta: {indicadores['data_consulta']}\n"
+            contexto += "---------------------------------------\n"
+            
+            # Adicionar análise de impacto
+            analise = analisar_impacto_indicadores(indicadores, perfil)
+            if analise:
+                contexto += "\n--- ANÁLISE DE IMPACTO DOS INDICADORES ---\n"
+                contexto += analise
+                
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar indicadores econômicos: {e}")
+        contexto += "\n(Indicadores econômicos não disponíveis no momento)\n"
+    
+    return contexto
+
+def analisar_impacto_indicadores(indicadores, perfil):
+    """Analisa o impacto dos indicadores nas recomendações."""
+    analise = []
+    
+    if indicadores['selic'] is not None:
+        selic = indicadores['selic']
+        if selic > 12:
+            analise.append(f"• SELIC em {selic:.2f}%: Momento favorável para renda fixa. Considere CDB, Tesouro Selic e LCI/LCA.")
+        elif selic < 8:
+            analise.append(f"• SELIC em {selic:.2f}%: Renda fixa menos atrativa. Avalie maior exposição a ações e FIIs.")
+        else:
+            analise.append(f"• SELIC em {selic:.2f}%: Cenário neutro para investimentos.")
+    
+    if indicadores['ipca'] is not None:
+        ipca = indicadores['ipca']
+        if ipca > 0.5:  # IPCA mensal
+            analise.append(f"• IPCA em {ipca:.2f}%: Inflação elevada. Busque ativos com proteção contra perda de poder de compra.")
+    
+    return "\n".join(analise)
+
+    
 def get_system_prompt():
+    indicadores = IndicadoresDatabase().get_todos_indicadores_recentes()
     return """Você é um Consultor Financeiro Inteligente altamente capacitado.
 Seu objetivo é analisar transações, perfil de risco e sugerir produtos financeiros adequados.
 
