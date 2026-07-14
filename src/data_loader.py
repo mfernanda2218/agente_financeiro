@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-from src import config  # Mantém assim, mas ajuste abaixo
+from src.components import config  # Mantém assim, mas ajuste abaixo
 
 def load_transacoes(file_path=None):
     """Carrega as transações do CSV."""
