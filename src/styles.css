@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Fontes globais */
+html, body, [class*="css"]  {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Esconder elementos padrões do Streamlit */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Customização dos botões principais */
+.stButton>button {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+}
+
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(124, 58, 237, 0.3);
+    border: none;
+}
+
+/* Customização dos containers de métricas */
+div[data-testid="metric-container"] {
+    background-color: var(--secondary-background-color);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Labels e Títulos limpos */
+h1, h2, h3 {
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+}
+
+/* Expansores suaves */
+.streamlit-expanderHeader {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+/* Caixa de chat mais polida */
+.stChatMessage {
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}

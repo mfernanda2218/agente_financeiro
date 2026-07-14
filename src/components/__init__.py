@@ -1,0 +1,4 @@
+from .perfil_upload import render_perfil_form
+from .transacoes_upload import render_transacoes_upload
+from .produtos_upload import render_produtos_upload
+from .analise_gastos import render_analise_gastos
