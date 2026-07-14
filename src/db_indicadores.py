@@ -179,3 +179,15 @@ class IndicadoresDatabase:
         except Exception as e:
             logger.error(f"Erro ao consultar histórico: {e}")
             return pd.DataFrame()
+# MÉTODOS DE FALLBACK (Sem banco de dados)
+
+def get_indicadores_fallback():
+    """Retorna indicadores mockados quando banco não disponível"""
+    return {
+        'selic': 13.75,
+        'selic_data': datetime.now().strftime('%Y-%m-%d'),
+        'ipca': 0.56,
+        'ipca_data': datetime.now().strftime('%Y-%m-%d'),
+        'data_consulta': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        '_mock': True  # Sinalizador de dados mockados
+    }
