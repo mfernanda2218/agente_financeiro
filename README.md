@@ -2,6 +2,8 @@
 
 Um assistente financeiro pessoal avançado desenvolvido com Streamlit e API do Groq, capaz de analisar transações financeiras, fornecer recomendações personalizadas de investimento e contextualizar decisões com indicadores econômicos em tempo real.
 
+🔗 **Acesse o app em produção:** [agentefinanceirointeligente.streamlit.app](https://agentefinanceirointeligente.streamlit.app/)
+
 ---
 
 ## Funcionalidades
@@ -78,7 +80,7 @@ Crie um arquivo `.env` na raiz do projeto com as seguintes configurações:
 ```bash
 # API Groq (obrigatório)
 GROQ_API_KEY=sua_chave_api_aqui
-LLM_MODEL=llama-3.1-8b-instant
+LLM_MODEL=llama-3.3-70b-versatile
 
 # PostgreSQL (opcional - para indicadores econômicos)
 DB_HOST=localhost
